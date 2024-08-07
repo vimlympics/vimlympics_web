@@ -1,0 +1,88 @@
+package templ
+
+import (
+	"fmt"
+	"github.com/vimlympics/vimlympics_web/db"
+	"github.com/vimlympics/vimlympics_web/model"
+	"strings"
+)
+
+templ CountryBoard(indivLeaderboard []db.GetCountryDetailsRow, country string) {
+	<section class="py-12 md:py-24 lg:py-32 bg-gray-100">
+		<div class="flex flex-col items-center justify-center space-y-4 text-center pb-4">
+			<div class="space-y-2">
+				<div class="flex flex-col items-center justify-center space-y-4 text-center">
+					<div class="space-y-2">
+						<h2 class="text-3xl md:text-5xl font-bold tracking-tight">
+							{ fmt.Sprintf("%s", model.ISO3166[country].Name) }&apos;s
+							Records
+						</h2>
+						<i class={ fmt.Sprintf("cf-32 cf-%s", strings.ToLower(country)) }></i>
+					</div>
+				</div>
+			</div>
+		</div>
+		@medalSummary(*calcCountryMedals(indivLeaderboard))
+		@CountryDetails(indivLeaderboard, country)
+	</section>
+}
+
+templ CountryDetails(leaderboard []db.GetCountryDetailsRow, username string) {
+	<section>
+		<div class="mt-10 overflow-x-auto mx-10">
+			<table class="w-full table-auto">
+				<thead>
+					<tr class="bg-gray-200 text-gray-600">
+						<th class="px-4 py-3 text-left">Athlete</th>
+						<th class="px-4 py-3 text-left">Event</th>
+						<th class="px-4 py-3 text-left">Date Entered</th>
+						<th class="px-4 py-3 text-left">Time</th>
+						<th class="px-4 py-3 text-left">Rank</th>
+					</tr>
+				</thead>
+				<tbody>
+					for _, record := range leaderboard {
+						<tr class="border-b border-gray-200">
+							<td class="px-4 py-3">{ fmt.Sprintf("%s", record.Username.String) }</td>
+							<td class="px-4 py-3">
+								{ fmt.Sprintf("%s %d", record.EventTypeName.String,
+						int(record.EventLevel.Int64)) }
+							</td>
+							<td class="px-4 py-3">
+								{ fmt.Sprintf("%02d-%02d-%04d %02d:%02d:%02d", record.DateEntered.Time.Day(),
+						record.DateEntered.Time.Month(), record.DateEntered.Time.Year(), record.DateEntered.Time.Hour(),
+						record.DateEntered.Time.Minute(), record.DateEntered.Time.Second()) }
+							</td>
+							<td class="px-4 py-3">{ fmt.Sprintf("%d", int(record.Timems)) }</td>
+							<td class="px-4 py-3">{ fmt.Sprintf("%d", record.Rank) }</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</section>
+}
+
+func calcCountryMedals(indivLeaderboard []db.GetCountryDetailsRow) *MedalCount {
+	var medalCount MedalCount
+	for _, record := range indivLeaderboard {
+		rank, ok := record.Rank.(int64)
+		if !ok {
+			println("Rank is not an int64")
+			println("Rank is type: ", fmt.Sprintf("%T", record.Rank))
+			continue
+		}
+		switch rank {
+		case 1:
+			medalCount.Gold++
+		case 2:
+			medalCount.Silver++
+		case 3:
+			medalCount.Bronze++
+		default:
+			continue
+		}
+	}
+	medalCount.Total = medalCount.Gold + medalCount.Silver + medalCount.Bronze
+	return &medalCount
+}
