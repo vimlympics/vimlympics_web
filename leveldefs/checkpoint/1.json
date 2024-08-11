@@ -3,7 +3,8 @@
   "checkpoint_data": {
     "text": [
       "This is the first checkpoint",
-      "This is the second line."
+      "This is the second line.",
+      "This is the thrird line."
     ],
     "points": [
       {
