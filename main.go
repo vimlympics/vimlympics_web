@@ -4,17 +4,24 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/vimlympics/vimlympics_web/db"
 	// "htmxx/service"
 
+	"github.com/alexedwards/scs/v2"
+	"github.com/joho/godotenv"
 	_ "github.com/tursodatabase/go-libsql"
+	"golang.org/x/oauth2"
+	githubOAuth2 "golang.org/x/oauth2/github"
 )
 
 type application struct {
-	config config
-	db     *sql.DB
-	query  *db.Queries
+	config  config
+	db      *sql.DB
+	query   *db.Queries
+	oauth   *oauth2.Config
+	session *scs.SessionManager
 }
 
 type config struct {
@@ -25,10 +32,16 @@ type config struct {
 }
 
 func main() {
+	if os.Getenv("APP_ENV") != "production" {
+		err := godotenv.Load()
+		if err != nil {
+			panic("Failed to load .env file")
+		}
+	}
 	var config config
 
 	config.httpPort = GetStringEnv("PORT", "8081")
-	config.db.dsn = GetStringEnv("HTMXX_DB_URL", "file:./db.sqlite3")
+	config.db.dsn = GetStringEnv("SQLITE_PATH", "")
 
 	dbConn, err := NewDB(config.db.dsn)
 	if err != nil {
@@ -38,10 +51,21 @@ func main() {
 	}
 	defer dbConn.Close()
 
+	sessionManager := scs.New()
+	sessionManager.Lifetime = 24 * time.Hour
+
 	app := &application{
 		config: config,
 		db:     dbConn,
 		query:  db.New(dbConn),
+		oauth: &oauth2.Config{
+			// TODO: Move this
+			ClientID:    GetStringEnv("GH_CLIENT_ID", ""),
+			ClientSecret: GetStringEnv("GH_CLIENT_SECRET", ""),
+			RedirectURL:  GetStringEnv("GGH_CALLBACK", ""),
+			Endpoint:     githubOAuth2.Endpoint,
+		},
+		session: sessionManager,
 	}
 	//
 	err = app.serveHTTP()

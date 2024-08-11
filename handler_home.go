@@ -20,7 +20,7 @@ func (h *application) Leaderboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	leaderboard := templ.HomeBoards(indivSummary, countrySummary)
-	err = templ.Layout(leaderboard, "Leaderboard", true).Render(r.Context(), w)
+	err = templ.Layout(leaderboard, "Leaderboard", h.isLoggedIn(r)).Render(r.Context(), w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

@@ -3,6 +3,7 @@ package templ
 import (
 	"fmt"
 	"github.com/vimlympics/vimlympics_web/db"
+	"github.com/vimlympics/vimlympics_web/model"
 	"strings"
 )
 
@@ -42,8 +43,13 @@ templ IndivDetails(leaderboard []db.GetIndivDetailsRow, username string) {
 					for _, record := range leaderboard {
 						<tr class="border-b border-gray-200">
 							<td class="px-4 py-3">
-								{ fmt.Sprintf("%s %d", record.EventTypeName.String,
-						int(record.EventLevel.Int64)) }
+								<a
+									href={ templ.SafeURL(fmt.Sprintf("/event/%d/%d", record.EventType.Int64,
+							record.EventLevel.Int64 )) }
+								>
+									{ fmt.Sprintf("%s %d", model.EventType(record.EventType.Int64).String(),
+							int(record.EventLevel.Int64)) }
+								</a>
 							</td>
 							<td class="px-4 py-3">
 								{ fmt.Sprintf("%02d-%02d-%04d %02d:%02d:%02d", record.DateEntered.Time.Day(),

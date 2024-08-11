@@ -21,7 +21,7 @@ func (h *application) Indiv(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	leaderboard := templ.IndivBoards(indivRecord, user)
-	err = templ.Layout(leaderboard, fmt.Sprintf("%s's Records", user), false).Render(r.Context(), w)
+	err = templ.Layout(leaderboard, fmt.Sprintf("%s's Records", user), h.isLoggedIn(r)).Render(r.Context(), w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -1,8 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/vimlympics/vimlympics_web/db"
 )
@@ -11,32 +12,34 @@ type SubmissionHandler struct{}
 
 func (h *application) Submission(w http.ResponseWriter, r *http.Request) {
 	user := r.PathValue("user")
-	eventType := r.PathValue("eventtype")
-	eventLevel := r.PathValue("level")
-	timeMs := r.PathValue("timems")
-	if user == "" || eventType == "" || eventLevel == "" || timeMs == "" {
+	type BodyData struct {
+		EventType  int64  `json:"eventtype"`
+		EventLevel int64  `json:"level"`
+		TimeMs     int64  `json:"timems"`
+		ApiKey     string `json:"apikey"`
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	data := BodyData{}
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if user == "" || data.EventType == 0 || data.EventLevel == 0 || data.ApiKey == "" {
 		http.Error(w, "Invalid submission", http.StatusBadRequest)
 		return
 	}
 
-	eventType64, err := strconv.ParseInt(eventType, 10, 64)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-	eventLevel64, err := strconv.ParseInt(eventLevel, 10, 64)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-	timeMs64, err := strconv.ParseInt(timeMs, 10, 64)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-
 	submissions := db.SubmitScoreParams{
 		Username:   user,
-		EventType:  eventType64,
-		EventLevel: eventLevel64,
-		Timems:     timeMs64,
+		EventType:  data.EventType,
+		EventLevel: data.EventLevel,
+		Timems:     data.TimeMs,
+		ApiKey:     data.ApiKey,
 	}
 
 	res, err := h.query.SubmitScore(r.Context(), submissions)

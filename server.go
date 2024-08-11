@@ -20,7 +20,7 @@ const (
 func (app *application) serveHTTP() error {
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", app.config.httpPort),
-		Handler: middleware.Logging(app.routes()),
+		Handler: middleware.Logging(app.session.LoadAndSave(app.routes())),
 	}
 
 	shutdownErrorChan := make(chan error)

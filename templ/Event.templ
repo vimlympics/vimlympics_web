@@ -5,37 +5,35 @@ import (
 	"github.com/vimlympics/vimlympics_web/db"
 	"github.com/vimlympics/vimlympics_web/model"
 	"strings"
-	// "github.com/vimlympics/vimlympics_web/levels"
 )
 
-templ CountryBoard(indivLeaderboard []db.GetCountryDetailsRow, country string) {
+templ EventBoards(eventLeaderboard []db.GetEventDetailsRow, eventType model.EventType) {
 	<section class="py-12 md:py-24 lg:py-32 bg-gray-100">
 		<div class="flex flex-col items-center justify-center space-y-4 text-center pb-4">
 			<div class="space-y-2">
 				<div class="flex flex-col items-center justify-center space-y-4 text-center">
 					<div class="space-y-2">
 						<h2 class="text-3xl md:text-5xl font-bold tracking-tight">
-							{ fmt.Sprintf("%s", model.ISO3166[country].Name) }&apos;s
+							{ fmt.Sprintf("%s %d", eventType.String(),
+						eventLeaderboard[0].EventLevel.Int64) }&apos;s
 							Records
 						</h2>
-						<i class={ fmt.Sprintf("cf-32 cf-%s", strings.ToLower(country)) }></i>
 					</div>
 				</div>
 			</div>
 		</div>
-		@medalSummary(*calcCountryMedals(indivLeaderboard))
-		@CountryDetails(indivLeaderboard, country)
+		@EventDetails(eventLeaderboard)
 	</section>
 }
 
-templ CountryDetails(leaderboard []db.GetCountryDetailsRow, username string) {
+templ EventDetails(leaderboard []db.GetEventDetailsRow) {
 	<section>
 		<div class="mt-10 overflow-x-auto mx-10">
 			<table class="w-full table-auto">
 				<thead>
 					<tr class="bg-gray-200 text-gray-600">
 						<th class="px-4 py-3 text-left">Athlete</th>
-						<th class="px-4 py-3 text-left">Event</th>
+						<th class="px-4 py-3 text-left">Country</th>
 						<th class="px-4 py-3 text-left">Date Entered</th>
 						<th class="px-4 py-3 text-left">Time</th>
 						<th class="px-4 py-3 text-left">Rank</th>
@@ -50,12 +48,11 @@ templ CountryDetails(leaderboard []db.GetCountryDetailsRow, username string) {
 								</a>
 							</td>
 							<td class="px-4 py-3">
-								<a
-									href={ templ.SafeURL(fmt.Sprintf("/event/%d/%d", record.EventType.Int64,
-							record.EventLevel.Int64 )) }
-								>
-									{ fmt.Sprintf("%s %d", model.EventType(record.EventType.Int64).String(),
-							int(record.EventLevel.Int64)) }
+								<a href={ templ.URL(fmt.Sprintf("/country/%s", record.Country.String)) }>
+									<div class="flex items-center space-x-2">
+										<i class={ fmt.Sprintf("cf-32 cf-%s", strings.ToLower(record.Country.String)) }></i>
+										<span>{ model.ISO3166[record.Country.String].Name }</span>
+									</div>
 								</a>
 							</td>
 							<td class="px-4 py-3">
@@ -71,28 +68,4 @@ templ CountryDetails(leaderboard []db.GetCountryDetailsRow, username string) {
 			</table>
 		</div>
 	</section>
-}
-
-func calcCountryMedals(indivLeaderboard []db.GetCountryDetailsRow) *MedalCount {
-	var medalCount MedalCount
-	for _, record := range indivLeaderboard {
-		rank, ok := record.Rank.(int64)
-		if !ok {
-			println("Rank is not an int64")
-			println("Rank is type: ", fmt.Sprintf("%T", record.Rank))
-			continue
-		}
-		switch rank {
-		case 1:
-			medalCount.Gold++
-		case 2:
-			medalCount.Silver++
-		case 3:
-			medalCount.Bronze++
-		default:
-			continue
-		}
-	}
-	medalCount.Total = medalCount.Gold + medalCount.Silver + medalCount.Bronze
-	return &medalCount
 }

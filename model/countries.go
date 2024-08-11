@@ -1,10 +1,14 @@
 package model
 
+import "sort"
+
 type ISO3166t map[string]CountryData
 
 type CountryData struct {
 	Name string
 }
+
+var SortedKeys []string
 
 var ISO3166 = ISO3166t{
 	"AD": {Name: "Andorra"},
@@ -259,4 +263,11 @@ var ISO3166 = ISO3166t{
 	"ZM": {Name: "Zambia"},
 	"ZW": {Name: "Zimbabwe"},
 	// Add more countries as needed
+}
+
+func init() {
+	for key := range ISO3166 {
+		SortedKeys = append(SortedKeys, key)
+	}
+	sort.Strings(SortedKeys)
 }

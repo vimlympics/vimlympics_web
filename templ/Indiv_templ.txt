@@ -4,8 +4,9 @@
 \"></i></div></div></div></div>
 </section>
 <section><div class=\"mt-10 overflow-x-auto mx-10\"><table class=\"w-full table-auto\"><thead><tr class=\"bg-gray-200 text-gray-600\"><th class=\"px-4 py-3 text-left\">Event</th><th class=\"px-4 py-3 text-left\">Date Entered</th><th class=\"px-4 py-3 text-left\">Time</th><th class=\"px-4 py-3 text-left\">Rank</th></tr></thead> <tbody>
-<tr class=\"border-b border-gray-200\"><td class=\"px-4 py-3\">
-</td><td class=\"px-4 py-3\">
+<tr class=\"border-b border-gray-200\"><td class=\"px-4 py-3\"><a href=\"
+\">
+</a></td><td class=\"px-4 py-3\">
 </td><td class=\"px-4 py-3\">
 </td><td class=\"px-4 py-3\">
 </td></tr>

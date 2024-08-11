@@ -1,0 +1,37 @@
+{
+	"lang": "lua",
+	"checkpoint_data": {
+		"text": [
+			"local state = {",
+			"    build_virt_line = function()",
+			"        return build_virt_line",
+			"    end,",
+			"    build_gutter_hints = function()",
+			"        return build_gutter_hints",
+			"    end,",
+			"    on_cursor_moved = function()",
+			"        return on_cursor_moved",
+			"    end,",
+			"    extmark = function()",
+			"        return extmark",
+			"    end,",
+			"    gutter_group = function()",
+			"        return gutter_group",
+			"    end,",
+			"    ns = function()",
+			"        return ns",
+			"    end,",
+			"}"
+		],
+		"points": [
+			{
+				"row": 1,
+				"col": 15
+			},
+			{
+				"row": 20,
+				"col": 1
+			}
+		]
+	}
+}

@@ -47,7 +47,7 @@ func header(title string) templ.Component {
 	})
 }
 
-func Layout(contents templ.Component, title string, show_hero bool) templ.Component {
+func Layout(contents templ.Component, title string, loggedin bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -73,13 +73,13 @@ func Layout(contents templ.Component, title string, show_hero bool) templ.Compon
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if show_hero {
-			templ_7745c5c3_Err = hero().Render(ctx, templ_7745c5c3_Buffer)
+		if loggedin {
+			templ_7745c5c3_Err = smallhero().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = smallhero().Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = hero().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

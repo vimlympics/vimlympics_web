@@ -14,11 +14,6 @@ type Event struct {
 	EventLevel int64
 }
 
-type EventsType struct {
-	EventTypeID   int64
-	EventTypeName string
-}
-
 type Score struct {
 	ScoreID     int64
 	UserID      int64
@@ -30,5 +25,6 @@ type Score struct {
 type User struct {
 	UserID   int64
 	Username string
-	Country  string
+	ApiKey   string
+	Country  sql.NullString
 }

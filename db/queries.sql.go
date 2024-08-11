@@ -10,6 +10,19 @@ import (
 	"database/sql"
 )
 
+const createUser = `-- name: CreateUser :execresult
+INSERT INTO users (username, api_key) VALUES (?, ?)
+`
+
+type CreateUserParams struct {
+	Username string
+	ApiKey   string
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, createUser, arg.Username, arg.ApiKey)
+}
+
 const getCountryDetails = `-- name: GetCountryDetails :many
 WITH "RankedScores" AS (
     SELECT 
@@ -25,24 +38,23 @@ LEFT    JOIN
         users u ON s.user_id = u.user_id
     GROUP BY u.user_id, s.event_id
 )
-    SELECT username, country, timems, date_entered, rank, event_type_name, event_level FROM RankedScores
+    SELECT username, country, timems, date_entered, rank,  e.event_type, event_level FROM RankedScores
 LEFT JOIN events e on RankedScores.event_id = e.event_id
-LEFT JOIN events_types et on e.event_type = et.event_type_id
 WHERE country = ?
 ORDER BY rank asc
 `
 
 type GetCountryDetailsRow struct {
-	Username      sql.NullString
-	Country       sql.NullString
-	Timems        int64
-	DateEntered   sql.NullTime
-	Rank          interface{}
-	EventTypeName sql.NullString
-	EventLevel    sql.NullInt64
+	Username    sql.NullString
+	Country     sql.NullString
+	Timems      int64
+	DateEntered sql.NullTime
+	Rank        interface{}
+	EventType   sql.NullInt64
+	EventLevel  sql.NullInt64
 }
 
-func (q *Queries) GetCountryDetails(ctx context.Context, country string) ([]GetCountryDetailsRow, error) {
+func (q *Queries) GetCountryDetails(ctx context.Context, country sql.NullString) ([]GetCountryDetailsRow, error) {
 	rows, err := q.db.QueryContext(ctx, getCountryDetails, country)
 	if err != nil {
 		return nil, err
@@ -57,7 +69,7 @@ func (q *Queries) GetCountryDetails(ctx context.Context, country string) ([]GetC
 			&i.Timems,
 			&i.DateEntered,
 			&i.Rank,
-			&i.EventTypeName,
+			&i.EventType,
 			&i.EventLevel,
 		); err != nil {
 			return nil, err
@@ -104,7 +116,7 @@ LIMIT 10
 `
 
 type GetCountrySummaryRow struct {
-	Country     string
+	Country     sql.NullString
 	Gold        sql.NullFloat64
 	Silver      sql.NullFloat64
 	Bronze      sql.NullFloat64
@@ -142,6 +154,73 @@ func (q *Queries) GetCountrySummary(ctx context.Context) ([]GetCountrySummaryRow
 	return items, nil
 }
 
+const getEventDetails = `-- name: GetEventDetails :many
+    SELECT 
+        s.event_id,
+        u.username,
+        u.country,
+        s.timems,
+        s.date_entered,
+    e.event_type,
+    e.event_level,
+        ROW_NUMBER() OVER (PARTITION BY s.event_id ORDER BY min(s.timems) ASC) AS "rank"
+    FROM 
+        scores s
+LEFT    JOIN 
+        users u ON s.user_id = u.user_id
+LEFT JOIN events e ON s.event_id = e.event_id
+WHERE s.event_id = (SELECT event_id FROM events f WHERE f.event_type = ? and f.event_level = ?)
+    GROUP BY u.user_id, s.event_id
+`
+
+type GetEventDetailsParams struct {
+	EventType  int64
+	EventLevel int64
+}
+
+type GetEventDetailsRow struct {
+	EventID     int64
+	Username    sql.NullString
+	Country     sql.NullString
+	Timems      int64
+	DateEntered sql.NullTime
+	EventType   sql.NullInt64
+	EventLevel  sql.NullInt64
+	Rank        interface{}
+}
+
+func (q *Queries) GetEventDetails(ctx context.Context, arg GetEventDetailsParams) ([]GetEventDetailsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEventDetails, arg.EventType, arg.EventLevel)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetEventDetailsRow
+	for rows.Next() {
+		var i GetEventDetailsRow
+		if err := rows.Scan(
+			&i.EventID,
+			&i.Username,
+			&i.Country,
+			&i.Timems,
+			&i.DateEntered,
+			&i.EventType,
+			&i.EventLevel,
+			&i.Rank,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getIndivDetails = `-- name: GetIndivDetails :many
 WITH "RankedScores" AS (
     SELECT 
@@ -157,20 +236,19 @@ LEFT    JOIN
         users u ON s.user_id = u.user_id
     GROUP BY u.user_id, s.event_id
 )
-    SELECT country, timems, date_entered, rank, event_type_name, event_level FROM RankedScores
+    SELECT country, timems, date_entered, rank, e.event_type, event_level FROM RankedScores
 LEFT JOIN events e on RankedScores.event_id = e.event_id
-LEFT JOIN events_types et on e.event_type = et.event_type_id
 WHERE username = ?
 ORDER BY rank asc
 `
 
 type GetIndivDetailsRow struct {
-	Country       sql.NullString
-	Timems        int64
-	DateEntered   sql.NullTime
-	Rank          interface{}
-	EventTypeName sql.NullString
-	EventLevel    sql.NullInt64
+	Country     sql.NullString
+	Timems      int64
+	DateEntered sql.NullTime
+	Rank        interface{}
+	EventType   sql.NullInt64
+	EventLevel  sql.NullInt64
 }
 
 func (q *Queries) GetIndivDetails(ctx context.Context, username string) ([]GetIndivDetailsRow, error) {
@@ -187,7 +265,7 @@ func (q *Queries) GetIndivDetails(ctx context.Context, username string) ([]GetIn
 			&i.Timems,
 			&i.DateEntered,
 			&i.Rank,
-			&i.EventTypeName,
+			&i.EventType,
 			&i.EventLevel,
 		); err != nil {
 			return nil, err
@@ -274,12 +352,43 @@ func (q *Queries) GetIndivSummary(ctx context.Context) ([]GetIndivSummaryRow, er
 	return items, nil
 }
 
+const getUser = `-- name: GetUser :one
+SELECT user_id FROM users WHERE username = ?
+`
+
+func (q *Queries) GetUser(ctx context.Context, username string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getUser, username)
+	var user_id int64
+	err := row.Scan(&user_id)
+	return user_id, err
+}
+
+const getUserProfileData = `-- name: GetUserProfileData :one
+SELECT country, api_key FROM users WHERE username = ?
+`
+
+type GetUserProfileDataRow struct {
+	Country sql.NullString
+	ApiKey  string
+}
+
+func (q *Queries) GetUserProfileData(ctx context.Context, username string) (GetUserProfileDataRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserProfileData, username)
+	var i GetUserProfileDataRow
+	err := row.Scan(&i.Country, &i.ApiKey)
+	return i, err
+}
+
 const submitScore = `-- name: SubmitScore :execresult
 INSERT INTO scores (user_id, event_id, timems)
-SELECT u.user_id, e.event_id, ?
+SELECT 
+    u.user_id, 
+    e.event_id, 
+    ?
 FROM users u
 LEFT JOIN events e ON e.event_level = ? AND e.event_type = ?
-WHERE u.username = ?
+WHERE u.username = ? AND u.api_key = ?
+  AND u.user_id IS NOT NULL
 `
 
 type SubmitScoreParams struct {
@@ -287,6 +396,7 @@ type SubmitScoreParams struct {
 	EventLevel int64
 	EventType  int64
 	Username   string
+	ApiKey     string
 }
 
 func (q *Queries) SubmitScore(ctx context.Context, arg SubmitScoreParams) (sql.Result, error) {
@@ -295,5 +405,19 @@ func (q *Queries) SubmitScore(ctx context.Context, arg SubmitScoreParams) (sql.R
 		arg.EventLevel,
 		arg.EventType,
 		arg.Username,
+		arg.ApiKey,
 	)
+}
+
+const updateUserCountry = `-- name: UpdateUserCountry :execresult
+UPDATE users SET country = ? WHERE username = ?
+`
+
+type UpdateUserCountryParams struct {
+	Country  sql.NullString
+	Username string
+}
+
+func (q *Queries) UpdateUserCountry(ctx context.Context, arg UpdateUserCountryParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, updateUserCountry, arg.Country, arg.Username)
 }

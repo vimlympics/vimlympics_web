@@ -1,0 +1,19 @@
+{
+  "lang": "text",
+  "checkpoint_data": {
+    "text": [
+      "Random-too text.",
+      "And again"
+    ],
+    "points": [
+      {
+        "row": 1,
+        "col": 7
+      },
+      {
+        "row": 2,
+        "col": 4
+      }
+    ]
+  }
+}

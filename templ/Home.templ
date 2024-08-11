@@ -111,10 +111,10 @@ templ CountryLeaderboard(leaderboard []db.GetCountrySummaryRow) {
 				<tr class="border-b border-gray-200">
 					<td class="px-4 py-3">{ fmt.Sprintf("%d", rank) }</td>
 					<td class="px-4 py-3">
-						<a href={ templ.URL(fmt.Sprintf("/country/%s", record.Country)) }>
+						<a href={ templ.URL(fmt.Sprintf("/country/%s", record.Country.String)) }>
 							<div class="flex items-center space-x-2">
-								<i class={ fmt.Sprintf("cf-32 cf-%s", strings.ToLower(record.Country)) }></i>
-								<span>{ model.ISO3166[record.Country].Name }</span>
+								<i class={ fmt.Sprintf("cf-32 cf-%s", strings.ToLower(record.Country.String)) }></i>
+								<span>{ model.ISO3166[record.Country.String].Name }</span>
 							</div>
 						</a>
 					</td>
