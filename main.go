@@ -62,7 +62,7 @@ func main() {
 			// TODO: Move this
 			ClientID:    GetStringEnv("GH_CLIENT_ID", ""),
 			ClientSecret: GetStringEnv("GH_CLIENT_SECRET", ""),
-			RedirectURL:  GetStringEnv("GGH_CALLBACK", ""),
+			RedirectURL:  GetStringEnv("GH_CALLBACK", ""),
 			Endpoint:     githubOAuth2.Endpoint,
 		},
 		session: sessionManager,
