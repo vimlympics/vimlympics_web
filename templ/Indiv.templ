@@ -56,7 +56,7 @@ templ IndivDetails(leaderboard []db.GetIndivDetailsRow, username string) {
 						record.DateEntered.Time.Month(), record.DateEntered.Time.Year(), record.DateEntered.Time.Hour(),
 						record.DateEntered.Time.Minute(), record.DateEntered.Time.Second()) }
 							</td>
-							<td class="px-4 py-3">{ fmt.Sprintf("%d", int(record.Timems)) }</td>
+							<td class="px-4 py-3">{ fmt.Sprintf("%.3f", float64(record.Timems) / 1000) }</td>
 							<td class="px-4 py-3">{ fmt.Sprintf("%d", record.Rank) }</td>
 						</tr>
 					}

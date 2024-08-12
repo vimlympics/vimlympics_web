@@ -155,9 +155,9 @@ func IndivDetails(leaderboard []db.GetIndivDetailsRow, username string) templ.Co
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var9 string
-			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", int(record.Timems)))
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.3f", float64(record.Timems)/1000))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templ/Indiv.templ`, Line: 59, Col: 68}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templ/Indiv.templ`, Line: 59, Col: 81}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
