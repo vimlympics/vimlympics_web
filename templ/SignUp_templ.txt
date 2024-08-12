@@ -7,6 +7,9 @@
 <option value=\"
 \">
 </option>
-</select></div></div></div></div></div></div>
+</select></div></div>
+</div></div></div></div>
+<div><label class=\"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70\" for=\"config\">Plugin Config</label> <textarea readonly name=\"config\" class=\"w-full h-72\">
+</textarea><ol class=\"list-decimal list-inside\"><li>Add the abbe to your Neovim config</li><li>Run `:VimlympicsAuth` to add your API Key</li><li>Run `:Vimlympics` to start the game</li></ol></div>
 <div class=\"grid gap-1\">Country Updated to 
 </div>

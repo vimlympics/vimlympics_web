@@ -90,9 +90,35 @@ templ Profile(username string, currentcountry, apikey string) {
 							</select>
 						</div>
 					</div>
+					@addCode(username)
 				</div>
 			</div>
 		</div>
+	</div>
+}
+
+templ addCode(username string) {
+	<div>
+		<label
+			class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+			for="config"
+		>
+			Plugin Config
+		</label>
+		<textarea readonly name="config" class="w-full h-72">
+			{ lazyText(username) }
+		</textarea>
+		<ol class="list-decimal list-inside">
+			<li>
+				Add the abbe to your Neovim config
+			</li>
+			<li>
+				Run `:VimlympicsAuth` to add your API Key
+			</li>
+			<li>
+				Run `:Vimlympics` to start the game
+			</li>
+		</ol>
 	</div>
 }
 
@@ -100,4 +126,19 @@ templ UpdateSuccess(country string) {
 	<div class="grid gap-1">
 		Country Updated to { country }
 	</div>
+}
+
+func lazyText(username string) string {
+	return fmt.Sprintf(`
+return {
+{
+'vimlympics/vimlympics.nvim',
+lazy = true,
+opts = {
+username = '%s',
+},
+cmd = { 'Vimlympics', 'VimlympicsAuth' },
+},
+}
+`, username)
 }
